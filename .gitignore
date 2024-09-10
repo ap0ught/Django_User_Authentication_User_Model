@@ -9,7 +9,8 @@ db.sqlite3
 *.pyo
 *.pyd
 __pycache__/
-
+*/__pycache__/
+app/__pycache__/
 # Ignore environment files
 .env
 venv/
