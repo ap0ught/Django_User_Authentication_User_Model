@@ -1,10 +1,11 @@
-from django.db import models
 from django.contrib.auth.models import User
-# Create your models here.
+from django.db import models
+
+# Directory where profile pictures will be uploaded
+UPLOAD_TO = 'profile_pics/'
+
 
 class Profile(models.Model):
-    username = models.OneToOneField(User, on_delete=models.CASCADE)
-    address = models.TextField()
-    profile_pic = models.ImageField()
-
-    
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    address = models.TextField(null=True, blank=True)
+    profile_pic = models.ImageField(upload_to=UPLOAD_TO)

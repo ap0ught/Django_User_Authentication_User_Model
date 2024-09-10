@@ -1,31 +1,38 @@
-from django.shortcuts import render
-from app.forms import *
-from app.models import *
-from django.http import HttpResponse
 # Create your views here.
 
-def User_Registration(request):
-    
-    UFO = User_Form(label_suffix="")
-    PFO = Profile_Form(label_suffix="")
-    d = {'UFO': UFO, 'PFO': PFO}
-    
-    if request.method=='POST' and request.FILES:
-        UFD = User_Form(request.POST)
-        PFO = Profile_Form(request.POST,request.FILES)
-        
-        if UFD.is_valid() and PFO.is_valid():
-            # encrypting the password
-            NSUFD = UFD.save(commit=False)
-            saved_password = UFD.cleaned_data["password"]
-            NSUFD.set_password(saved_password)
-            NSUFD.save()
-            # assigining value to username
-            NSPFO = PFO.save(commit=False)
-            NSPFO.username = NSUFD
-            NSPFO.save()
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render
+
+from .forms import UserForm, ProfileForm
+
+
+def user_registration(request: HttpRequest) -> HttpResponse:
+    user_form = UserForm(label_suffix="")
+    profile_form = ProfileForm(label_suffix="")
+    context = {'user_form': user_form, 'profile_form': profile_form}
+
+    if request.method == 'POST' and request.FILES:
+        user_form_data = UserForm(request.POST)
+        profile_form_data = ProfileForm(request.POST, request.FILES)
+
+        if user_form_data.is_valid() & profile_form_data.is_valid():
+            new_user = save_user_with_encrypted_password(user_form_data)
+            save_profile_with_user(profile_form_data, new_user)
             return HttpResponse('<script>alert("Sign Up Successful")</script>')
         else:
             return HttpResponse('<script>alert("Invalid Data")</script>')
-              
-    return render(request, 'User_Registration.html',d)
+    return render(request, 'User_Registration.html', context)
+
+
+def save_user_with_encrypted_password(user_form_data):
+    new_user = user_form_data.save(commit=False)
+    saved_password = user_form_data.cleaned_data["password"]
+    new_user.set_password(saved_password)
+    new_user.save()
+    return new_user
+
+
+def save_profile_with_user(profile_form_data, user):
+    new_profile = profile_form_data.save(commit=False)
+    new_profile.username = user
+    new_profile.save()
